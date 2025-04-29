@@ -1,0 +1,83 @@
+---
+---
+title: "Bellabeat Smart Device Data Analysis"
+author: "Data Analyst"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+library(kableExtra)
+```
+
+## Introduction
+This report analyzes data collected from FitBit users to generate insights for Bellabeat, a wellness technology company. The objective is to understand user behavior and usage patterns to inform future product and marketing strategies.
+
+## Data Loading
+```{r load-data}
+activity <- read_csv("Fitabase Data 4.12.16-5.12.16/dailyActivity_merged.csv")
+calories <- read_csv("Fitabase Data 4.12.16-5.12.16/hourlyCalories_merged.csv")
+steps <- read_csv("Fitabase Data 4.12.16-5.12.16/hourlySteps_merged.csv")
+sleep <- read_csv("Fitabase Data 4.12.16-5.12.16/sleepDay_merged.csv")
+```
+
+## Data Cleaning
+```{r clean-data}
+activity <- activity %>% mutate(ActivityDate = mdy(ActivityDate))
+sleep <- sleep %>% mutate(SleepDay = mdy_hms(SleepDay)) %>% 
+  group_by(Id, date = as.Date(SleepDay)) %>% 
+  summarise(TotalSleep = sum(TotalMinutesAsleep), .groups = 'drop')
+```
+
+## Summary Statistics
+```{r summary-stats}
+activity %>% 
+  summarise(across(where(is.numeric), list(mean = mean, median = median), na.rm = TRUE)) %>% 
+  kable() %>% 
+  kable_styling()
+```
+
+## Visualizations
+### Steps Distribution
+```{r steps-plot}
+activity %>% 
+  ggplot(aes(TotalSteps)) + 
+  geom_histogram(binwidth = 1000, fill = "skyblue", color = "black") + 
+  labs(title = "Distribution of Daily Steps", x = "Steps", y = "Frequency")
+```
+
+### Calories vs Steps
+```{r calories-vs-steps}
+activity %>% 
+  ggplot(aes(TotalSteps, Calories)) + 
+  geom_point(alpha = 0.5) + 
+  geom_smooth(method = "lm") +
+  labs(title = "Calories Burned vs. Steps Taken", x = "Total Steps", y = "Calories")
+```
+
+### Sleep vs Activity
+```{r sleep-vs-activity}
+combined <- inner_join(activity, sleep, by = c("Id" = "Id", "ActivityDate" = "date"))
+combined %>% 
+  ggplot(aes(TotalSleep, TotalSteps)) + 
+  geom_point(alpha = 0.6) + 
+  labs(title = "Sleep Duration vs. Steps Taken", x = "Sleep (minutes)", y = "Steps")
+```
+
+## Insights
+- Most users average fewer than 8,000 steps per day.
+- There is a positive correlation between steps taken and calories burned.
+- Users with longer sleep durations tend to show slightly higher physical activity.
+
+## Recommendations
+1. Promote daily step goals with app notifications.
+2. Emphasize the link between sleep and activity in wellness tips.
+3. Use behavior clustering to tailor in-app experiences.
+
+## Conclusion
+This analysis provides a baseline understanding of user health behaviors, which Bellabeat can leverage to refine products and drive user engagement.
