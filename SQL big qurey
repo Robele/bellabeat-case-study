@@ -1,0 +1,25 @@
+**✅ Part : Explore the Data
+**Total rows in daily activity
+SELECT COUNT(*) FROM `bellabeat-analysis-458319.bellabeat_analysis.daily_activity`;
+
+-- Summary stats
+SELECT 
+  MIN(Calories) AS min_steps,
+  MAX(Calories) AS max_steps,
+  AVG(Calories) AS avg_steps
+FROM `bellabeat-analysis-458319.bellabeat_analysis.combined`;
+
+
+
+SELECT 
+  a.Id,
+  a.ActivityDate,
+  a.TotalSteps,
+  s.TotalMinutesAsleep,
+  s.TotalTimeInBed
+FROM 
+  `bellabeat-analysis-458319.bellabeat_analysis.daily_activity` AS a
+JOIN 
+  `bellabeat-analysis-458319.bellabeat_analysis.combined` AS s
+ON 
+  a.Id = s.Id AND a.ActivityDate;
